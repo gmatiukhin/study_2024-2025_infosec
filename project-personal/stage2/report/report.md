@@ -1,8 +1,8 @@
 ---
 ## Front matter
-title: "Шаблон отчёта по лабораторной работе"
-subtitle: "Простейший вариант"
-author: "Дмитрий Сергеевич Кулябов"
+title: "Индивидуальный проект. Этап 2"
+subtitle: ""
+author: "Матюхин Григорий Васильевич"
 
 ## Generic otions
 lang: ru-RU
@@ -70,52 +70,94 @@ header-includes:
 
 # Цель работы
 
-Здесь приводится формулировка цели лабораторной работы. Формулировки
-цели для каждой лабораторной работы приведены в методических
-указаниях.
-
-Цель данного шаблона --- максимально упростить подготовку отчётов по
-лабораторным работам.  Модифицируя данный шаблон, студенты смогут без
-труда подготовить отчёт по лабораторным работам, а также познакомиться
-с основными возможностями разметки Markdown.
-
-# Задание
-
-Здесь приводится описание задания в соответствии с рекомендациями
-методического пособия и выданным вариантом.
-
-# Теоретическое введение
-
-Здесь описываются теоретические аспекты, связанные с выполнением работы.
-
-Например, в табл. [-@tbl:std-dir] приведено краткое описание стандартных каталогов Unix.
-
-: Описание некоторых каталогов файловой системы GNU Linux {#tbl:std-dir}
-
-| Имя каталога | Описание каталога                                                                                                          |
-|--------------|----------------------------------------------------------------------------------------------------------------------------|
-| `/`          | Корневая директория, содержащая всю файловую                                                                               |
-| `/bin `      | Основные системные утилиты, необходимые как в однопользовательском режиме, так и при обычной работе всем пользователям     |
-| `/etc`       | Общесистемные конфигурационные файлы и файлы конфигурации установленных программ                                           |
-| `/home`      | Содержит домашние директории пользователей, которые, в свою очередь, содержат персональные настройки и данные пользователя |
-| `/media`     | Точки монтирования для сменных носителей                                                                                   |
-| `/root`      | Домашняя директория пользователя  `root`                                                                                   |
-| `/tmp`       | Временные файлы                                                                                                            |
-| `/usr`       | Вторичная иерархия для данных пользователя                                                                                 |
-
-Более подробно про Unix см. в [@tanenbaum_book_modern-os_ru; @robbins_book_bash_en; @zarrelli_book_mastering-bash_en; @newham_book_learning-bash_en].
+Установите DVWA в гостевую систему к Kali Linux.
 
 # Выполнение лабораторной работы
 
-Описываются проведённые действия, в качестве иллюстрации даётся ссылка на иллюстрацию (рис. [-@fig:001]).
+Damn Vulnerable Web Application ([DVWA](https://github.com/digininja/DVWA)) можно установить несколькими способами. Самым удобным является Docker.
 
-![Название рисунка](image/placeimg_800_600_tech.jpg){#fig:001 width=70%}
+## Установка Docker
+
+Воспользуемся официальной [иснтрукцией по установке](https://docs.docker.com/engine/install/debian/).
+
+```bash
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+$ echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+    https://download.docker.com/linux/debian bookworm stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+$ sudo apt-get update
+$ sudo apt-get install docker-ce docker-ce-cli \
+    containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+Запустим `hello-world` конттейнер и убедимся, что Docker был установлен верно.
+
+```bash
+$ sudo docker run hello-world
+```
+
+Дополнительно можно добавить пользователя в группу, чтобы не было необходимости использовать `sudo`.
+
+```bash
+$ sudo usermod -aG docker $USER
+```
+
+## Запуск DVWA
+
+Возьмем compose файл из GitHub.
+
+```yaml
+services:
+  dvwa:
+    build: .
+    image: ghcr.io/digininja/dvwa:latest
+    # Change `always` to `build` to build from local source
+    pull_policy: always
+    environment:
+      - DB_SERVER=db
+    depends_on:
+      - db
+    networks:
+      - dvwa
+    ports:
+      - 127.0.0.1:4280:80
+    restart: unless-stopped
+  db:
+    image: docker.io/library/mariadb:10
+    environment:
+      - MYSQL_ROOT_PASSWORD=dvwa
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=p@ssw0rd
+    volumes:
+      - dvwa:/var/lib/mysql
+    networks:
+      - dvwa
+    restart: unless-stopped
+volumes:
+  dvwa:
+networks:
+  dvwa:
+```
+
+Запустим контейнеры.
+
+```bash
+$ docker compose up
+```
+
+Теперь можем перейти на `localhost:4280`, чтобы увидеть рабочее приложение.
+
+![Страница входа](./image/login_page.png)
 
 # Выводы
 
-Здесь кратко описываются итоги проделанной работы.
-
-# Список литературы{.unnumbered}
-
-::: {#refs}
-:::
+На данном этапе проекта я установил DVWA в гостевую систему к Kali Linux.
