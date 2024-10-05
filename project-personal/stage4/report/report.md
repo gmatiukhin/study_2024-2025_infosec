@@ -1,8 +1,8 @@
 ---
 ## Front matter
-title: "Шаблон отчёта по лабораторной работе"
-subtitle: "Простейший вариант"
-author: "Дмитрий Сергеевич Кулябов"
+title: "Индивидуальный проект. Этап 4"
+subtitle: ""
+author: "Матюхин Григорий Васильевич"
 
 ## Generic otions
 lang: ru-RU
@@ -70,52 +70,78 @@ header-includes:
 
 # Цель работы
 
-Здесь приводится формулировка цели лабораторной работы. Формулировки
-цели для каждой лабораторной работы приведены в методических
-указаниях.
-
-Цель данного шаблона --- максимально упростить подготовку отчётов по
-лабораторным работам.  Модифицируя данный шаблон, студенты смогут без
-труда подготовить отчёт по лабораторным работам, а также познакомиться
-с основными возможностями разметки Markdown.
-
-# Задание
-
-Здесь приводится описание задания в соответствии с рекомендациями
-методического пособия и выданным вариантом.
-
-# Теоретическое введение
-
-Здесь описываются теоретические аспекты, связанные с выполнением работы.
-
-Например, в табл. [-@tbl:std-dir] приведено краткое описание стандартных каталогов Unix.
-
-: Описание некоторых каталогов файловой системы GNU Linux {#tbl:std-dir}
-
-| Имя каталога | Описание каталога                                                                                                          |
-|--------------|----------------------------------------------------------------------------------------------------------------------------|
-| `/`          | Корневая директория, содержащая всю файловую                                                                               |
-| `/bin `      | Основные системные утилиты, необходимые как в однопользовательском режиме, так и при обычной работе всем пользователям     |
-| `/etc`       | Общесистемные конфигурационные файлы и файлы конфигурации установленных программ                                           |
-| `/home`      | Содержит домашние директории пользователей, которые, в свою очередь, содержат персональные настройки и данные пользователя |
-| `/media`     | Точки монтирования для сменных носителей                                                                                   |
-| `/root`      | Домашняя директория пользователя  `root`                                                                                   |
-| `/tmp`       | Временные файлы                                                                                                            |
-| `/usr`       | Вторичная иерархия для данных пользователя                                                                                 |
-
-Более подробно про Unix см. в [@tanenbaum_book_modern-os_ru; @robbins_book_bash_en; @zarrelli_book_mastering-bash_en; @newham_book_learning-bash_en].
+Использование `nikto`
 
 # Выполнение лабораторной работы
 
-Описываются проведённые действия, в качестве иллюстрации даётся ссылка на иллюстрацию (рис. [-@fig:001]).
+`nikto` -- базовый сканер безопасности веб-сервера.
+Он сканирует и обнаруживает уязвимости в веб-приложениях,
+обычно вызванные неправильной конфигурацией на самом сервере,
+файлами, установленными по умолчанию, и небезопасными файлами,
+а также устаревшими серверными приложениями.
 
-![Название рисунка](image/placeimg_800_600_tech.jpg){#fig:001 width=70%}
+Проанализируем DVWA:
+
+```bash
+$ nikto -host localhost:4280                                                 
+- Nikto v2.5.0
+---------------------------------------------------------------------------
++ Target IP:          127.0.0.1
++ Target Hostname:    localhost
++ Target Port:        4280
++ Start Time:         2024-10-05 16:23:31 (GMT-4)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.62 (Debian)
++ /: Retrieved x-powered-by header: PHP/8.3.11.
++ /: The anti-clickjacking X-Frame-Options header is not present. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
++ /: The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type. See: https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ /: Web Server returns a valid response with junk HTTP methods which may cause false positives.
++ /phpinfo.php: Output from the phpinfo() function was found.
++ /?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000: PHP reveals potentially sensitive information via certain HTTP requests that contain specific QUERY strings. See: OSVDB-12184
++ /phpinfo.php: PHP is installed, and a test script which runs phpinfo() was found. This gives a lot of system information. See: CWE-552
++ /login.php: Admin login page/section found.
++ 7851 requests: 0 error(s) and 8 item(s) reported on remote host
++ End Time:           2024-10-05 16:23:40 (GMT-4) (9 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+```
+
+Проанализируем более конкретный путь в DVWA:
+
+```bash
+$ nikto -host http://localhost:4280/vulnerabilities/sqli
+- Nikto v2.5.0
+---------------------------------------------------------------------------
++ Target IP:          127.0.0.1
++ Target Hostname:    localhost
++ Target Port:        4280
++ Start Time:         2024-10-05 16:24:12 (GMT-4)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.62 (Debian)
++ /vulnerabilities/sqli/: Retrieved x-powered-by header: PHP/8.3.11.
++ /vulnerabilities/sqli/: The anti-clickjacking X-Frame-Options header is not present. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
++ /vulnerabilities/sqli/: The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type. See: https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ OPTIONS: Allowed HTTP Methods: POST, OPTIONS, HEAD, GET .
++ /: Web Server returns a valid response with junk HTTP methods which may cause false positives.
++ /vulnerabilities/sqli/test.php: Potential PHP MSSQL database connection string found.
++ /vulnerabilities/sqli/?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000: PHP reveals potentially sensitive information via certain HTTP requests that contain specific QUERY strings. See: OSVDB-12184
++ /vulnerabilities/sqli/test.php: This might be interesting.
++ 7851 requests: 0 error(s) and 8 item(s) reported on remote host
++ End Time:           2024-10-05 16:24:22 (GMT-4) (10 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+```
+
+Найденная нитересная страница:
+
+```bash
+...
+/vulnerabilities/sqli/test.php: This might be interesting.
+...
+```
 
 # Выводы
 
-Здесь кратко описываются итоги проделанной работы.
-
-# Список литературы{.unnumbered}
-
-::: {#refs}
-:::
+На данном этапе проекта я научился пользоваться `nikto` для анализа уязвимостей веб приложений.
