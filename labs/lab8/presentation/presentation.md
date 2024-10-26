@@ -1,14 +1,13 @@
 ---
 ## Front matter
 lang: ru-RU
-title: Структура научной презентации
-subtitle: Простейший шаблон
+title: Лабораторная работа 8
+subtitle: 
 author:
-  - Кулябов Д. С.
+  - Матюхин Г.В.
 institute:
   - Российский университет дружбы народов, Москва, Россия
-  - Объединённый институт ядерных исследований, Дубна, Россия
-date: 01 января 1970
+date: 26 октября 2024
 
 ## i18n babel
 babel-lang: russian
@@ -25,183 +24,149 @@ header-includes:
  - \metroset{progressbar=frametitle,sectionpage=progressbar,numbering=fraction}
 ---
 
-# Информация
+# Цель работы
 
-## Докладчик
+Освоить на практике применение режима однократного гаммирования
+на примере кодирования различных исходных текстов одним ключом.
 
-:::::::::::::: {.columns align=center}
-::: {.column width="70%"}
+# Выполнение лабораторной работы
 
-  * Кулябов Дмитрий Сергеевич
-  * д.ф.-м.н., профессор
-  * профессор кафедры прикладной информатики и теории вероятностей
-  * Российский университет дружбы народов
-  * [kulyabov-ds@rudn.ru](mailto:kulyabov-ds@rudn.ru)
-  * <https://yamadharma.github.io/ru/>
+# Необходимые компоненты
 
-:::
-::: {.column width="30%"}
+## Программа граммирования
 
-![](./image/kulyabov.jpg)
-
-:::
-::::::::::::::
-
-# Вводная часть
-
-## Актуальность
-
-- Важно донести результаты своих исследований до окружающих
-- Научная презентация --- рабочий инструмент исследователя
-- Необходимо создавать презентацию быстро
-- Желательна минимизация усилий для создания презентации
-
-## Объект и предмет исследования
-
-- Презентация как текст
-- Программное обеспечение для создания презентаций
-- Входные и выходные форматы презентаций
-
-## Цели и задачи
-
-- Создать шаблон презентации в Markdown
-- Описать алгоритм создания выходных форматов презентаций
-
-## Материалы и методы
-
-- Процессор `pandoc` для входного формата Markdown
-- Результирующие форматы
-	- `pdf`
-	- `html`
-- Автоматизация процесса создания: `Makefile`
-
-# Создание презентации
-
-## Процессор `pandoc`
-
-- Pandoc: преобразователь текстовых файлов
-- Сайт: <https://pandoc.org/>
-- Репозиторий: <https://github.com/jgm/pandoc>
-
-## Формат `pdf`
-
-- Использование LaTeX
-- Пакет для презентации: [beamer](https://ctan.org/pkg/beamer)
-- Тема оформления: `metropolis`
-
-## Код для формата `pdf`
-
-```yaml
-slide_level: 2
-aspectratio: 169
-section-titles: true
-theme: metropolis
+```python
+a = read_file_bytes(args.bytefile_a)
+b = read_file_bytes(args.bytefile_b)
+if len(a) != len(b):
+    exit(1)
+a_int = int.from_bytes(a)
+b_int = int.from_bytes(b)
+o_int = a_int ^ b_int
+o = o_int.to_bytes(len(a))
+with open(args.out, "wb") as f:
+    f.write(o)
 ```
 
-## Формат `html`
+## Скрипт создания файлов 1/3
 
-- Используется фреймворк [reveal.js](https://revealjs.com/)
-- Используется [тема](https://revealjs.com/themes/) `beige`
+```bash
+#!/bin/fish
 
-## Код для формата `html`
+echo -n "Goodbye, TEMPLATE" > template.txt
+sed 's/TEMPLATE/world/' template.txt > clear1.txt
 
-- Тема задаётся в файле `Makefile`
-
-```make
-REVEALJS_THEME = beige 
+echo -n "super secret message" > clear2.txt
 ```
-# Результаты
 
-## Получающиеся форматы
+## Скрипт создания файлов 2/3
 
-- Полученный `pdf`-файл можно демонстрировать в любой программе просмотра `pdf`
-- Полученный `html`-файл содержит в себе все ресурсы: изображения, css, скрипты
+```bash
+set -l len (string length (bat clear1.txt))
+set -l len1 (string length (bat clear2.txt))
+set -l len2 (string length (bat template.txt))
+if test $len1 -ge $len
+  set len $len1
+end
+if test $len2 -ge $len
+  set len $len2
+end
+string pad -r -c '=' -w $len (bat template.txt) | tr -d '\n' > template.pad.txt
+string pad -r -c '=' -w $len (bat clear1.txt) | tr -d '\n' > clear1.pad.txt
+string pad -r -c '=' -w $len (bat clear2.txt) | tr -d '\n' > clear2.pad.txt
+```
 
-# Элементы презентации
+## Скрипт создания файлов 3/3
 
-## Актуальность
+```bash
+openssl rand -base64 $len | head -c $len > key.txt
 
-- Даёт понять, о чём пойдёт речь
-- Следует широко и кратко описать проблему
-- Мотивировать свое исследование
-- Сформулировать цели и задачи
-- Возможна формулировка ожидаемых результатов
+python main.py -a clear1.pad.txt -b key.txt -O cipher1.txt
+printf '\n'
+python main.py -a clear2.pad.txt -b key.txt -O cipher2.txt
+```
 
-## Цели и задачи
+# Дешифровка текста
 
-- Не формулируйте более 1--2 целей исследования
+## Сначала подготовим все файлы:
 
-## Материалы и методы
+```bash
+$ ./prep.bash
+A:  b'Goodbye, world======'
+B:  b'jpJAcztyrVvK75Nl5lCr'
+O:  b'-\x1f%%\x01\x03\x11UR!\x199[QsQ\x08Q~O'
 
-- Представляйте данные качественно
-- Количественно, только если крайне необходимо
-- Излишние детали не нужны
+A:  b'super secret message'
+B:  b'jpJAcztyrVvK75Nl5lCr'
+O:  b'\x19\x05:$\x11Z\x07\x1c\x11$\x13?\x17X+\x1fF\r$\x17'
+```
 
-## Содержание исследования
+## Создадим комбинированный шифротекст.
 
-- Предлагаемое решение задач исследования с обоснованием
-- Основные этапы работы
+```bash
+$ python main.py -a cipher1.txt -b cipher2.txt -O mix.txt
+A:  b'-\x1f%%\x01\x03\x11UR!\x199[QsQ\x08Q~O'
+B:  b'\x19\x05:$\x11Z\x07\x1c\x11$\x13?\x17X+\x1fF\r$\x17'
+O:  b'4\x1a\x1f\x01\x10Y\x16IC\x05\n\x06L\tXNN\\ZX'
+```
 
-## Результаты
+## Скомбинируем его с известным нам шаблоном:
 
-- Не нужны все результаты
-- Необходимы логические связки между слайдами
-- Необходимо показать понимание материала
+```bash
+$ python main.py -a mix.txt -b template.pad.txt -O clear2.guess1.txt
+A:  b'4\x1a\x1f\x01\x10Y\x16IC\x05\n\x06L\tXNN\\ZX'
+B:  b'Goodbye, TEMPLATE==='
+O:  b'super secQOK\x1cE\x19\x1a\x0bage
+```
 
+## Угадаем слово
 
-## Итоговый слайд
+```
+s  u  p  e  r     s  e  c  Q  O  K  .  E  .  .  .  a  g  e
+73 75 70 65 72 20 73 65 63 51 4F 4B 1C 45 19 1A 0B 61 67 65
+```
 
-- Запоминается последняя фраза. © Штирлиц
-- Главное сообщение, которое вы хотите донести до слушателей
-- Избегайте использовать последний слайд вида *Спасибо за внимание*
+```
+s  u  p  e  r     s  e  c  r  e  t  .  E  .  .  .  a  g  e
+73 75 70 65 72 20 73 65 63 72 65 74 1C 45 19 1A 0B 61 67 65
+```
 
-# Рекомендации
+## Получим частично дешифрованное первое сообщение
 
-## Принцип 10/20/30
+```bash
+$ python main.py -a mix.txt -b clear2.guess1.txt -O clear1.guess1.txt
+A:  b'4\x1a\x1f\x01\x10Y\x16IC\x05\n\x06L\tXNN\\ZX'
+B:  b'super secret\x1cE\x19\x1a\x0bage'
+O:  b'Goodbye, worPLATE==='
+```
 
-  - 10 слайдов
-  - 20 минут на доклад
-  - 30 кегль шрифта
+## Повторим 1/2
 
-## Связь слайдов
+```bash
+hexedit clear1.guess1.txt
+$ python main.py -a mix.txt -b clear1.guess1.txt -O clear2.guess2.txt
+A:  b'4\x1a\x1f\x01\x10Y\x16IC\x05\n\x06L\tXNN\\ZX'
+B:  b'Goodbye, wordLATE==='
+O:  b'super secret(E\x19\x1a\x0bage'
+$ hexedit clear2.guess2.txt 
+```
 
-::: incremental
+## Повторим 2/2
 
-- Один слайд --- одна мысль
-- Нельзя ссылаться на объекты, находящиеся на предыдущих слайдах (например, на формулы)
-- Каждый слайд должен иметь заголовок
+```bash
+$ python main.py -a mix.txt -b clear2.guess2.txt -O clear1.guess2.txt
+A:  b'4\x1a\x1f\x01\x10Y\x16IC\x05\n\x06L\tXNN\\ZX'
+B:  b'super secret massage'
+O:  b'Goodbye, world9====='
+$ hexedit clear1.guess2.txt 
+$ python main.py -a mix.txt -b clear1.guess2.txt -O clear2.guess3.txt
+A:  b'4\x1a\x1f\x01\x10Y\x16IC\x05\n\x06L\tXNN\\ZX'
+B:  b'Goodbye, world======'
+O:  b'super secret message'
+```
 
-:::
+# Выводы
 
-## Количество сущностей
-
-::: incremental
-
-- Человек может одновременно помнить $7 \pm 2$ элемента
-- При размещении информации на слайде старайтесь чтобы в сумме слайд содержал не более 5 элементов
-- Можно группировать элементы так, чтобы визуально было не более 5 групп
-
-:::
-
-## Общие рекомендации
-
-::: incremental
-
-- На слайд выносится та информация, которая без зрительной опоры воспринимается хуже
-- Слайды должны дополнять или обобщать содержание выступления или его частей, а не дублировать его
-- Информация на слайдах должна быть изложена кратко, чётко и хорошо структурирована
-- Слайд не должен быть перегружен графическими изображениями и текстом
-- Не злоупотребляйте анимацией и переходами
-
-:::
-
-## Представление данных
-
-::: incremental
-
-- Лучше представить в виде схемы
-- Менее оптимально представить в виде рисунка, графика, таблицы
-- Текст используется, если все предыдущие способы отображения информации не подошли
-
-:::
-
+В ходе данной лабораторной работы я освоил
+на практике применение режима однократного гаммирования
+на примере кодирования различных исходных текстов одним ключом.
